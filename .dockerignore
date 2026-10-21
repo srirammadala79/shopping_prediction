@@ -1,0 +1,15 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.git
+.gitignore
+*.ipynb_checkpoints
+scratch/
+.system_generated/
+shopping2.csv
+online_Shopping_Prediction_Presentation_pages_removed.ppt

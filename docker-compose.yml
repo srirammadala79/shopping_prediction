@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  clickstream-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clickstream_ml_app
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1

@@ -1,0 +1,3 @@
+Algorithm,Number of Clusters (k),Silhouette Score (↑),Davies-Bouldin Index (↓),Calinski-Harabasz Index (↑)
+K-Means Clustering,4,0.3276132972714989,1.181391764331349,2887.1020678491054
+Agglomerative Hierarchical,4,0.3163236167925385,1.1757666569869372,2608.2108619447868
