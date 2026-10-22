@@ -1,68 +1,99 @@
-# Machine Learning Capstone Project — Review 2
-## Online Shopping Clickstream Prediction & Customer Segmentation
+# Machine Learning Capstone Project: Online Shopping Clickstream Prediction & Customer Segmentation
 
 **Course:** 23CSE301 Machine Learning  
 **Degree:** B.Tech. Computer Science and Engineering (III Year) — Academic Year 2026-27  
 **Team:** Team 16  
-**Review Scope:** Classification Track (Part B + Full 10-Model Benchmark) & Full Clustering Track  
+**Tracks Covered:** 
+1. **Regression Track (Review 1):** Continuous Product Price Prediction (`Price`)
+2. **Classification Track (Review 2):** 4-Class Product Navigation Category Prediction (`Main_Category`)
+3. **Clustering Track (Review 2):** Unsupervised Customer Behavioral Segmentation & Persona Profiling
 
 ---
 
-## 1. Problem Statement & Dataset Description
+## 1. Repository Directory Structure
 
-This capstone project addresses an end-to-end Machine Learning problem analyzing online shopping clickstream data (`shopping2.csv`). 
+This repository strictly conforms to the required directory structure:
 
-- **Classification Track:** Predict customer interest and product navigation category (`Main_Category`, 4 distinct multi-class categories) based on browsing behaviors (page sequence order, photography type, location on page, color, country, session depth, and weekday/weekend activity).
-- **Clustering Track:** Perform unsupervised customer segmentation to identify natural shopping personas (e.g., Quick Bouncers, Weekend Browsers, Deep-Intent Shoppers) without using training labels.
-
----
-
-## 2. Review 2 Deliverables & Rubric Fulfillment
-
-### Section A — Classification Track (6 Marks)
-- **A1 Implementation:** Successfully trained all 5 Part-B algorithms on the exact held-out test split:
-  1. Random Forest Classifier
-  2. AdaBoost Classifier
-  3. Gradient Boosting Classifier
-  4. Bagging Classifier (with `DecisionTreeClassifier` base estimator)
-  5. Multi-Layer Perceptron (MLP) Classifier
-- **A2 Consolidated Comparison Table:** Benchmarked all 10 algorithms (Part A + Part B) across Accuracy, Precision, Recall, F1-Score (weighted), and ROC-AUC (OvR) ranked primarily by Weighted F1-Score.
-- **A3 Model Selection & Tuning:**
-  - Evaluated the 10-model baseline leaderboard and identified the actual best-performing baseline model (**Bagging Classifier**), avoiding unfounded defaults to Random Forest.
-  - Justified **Weighted F1-score** as the primary selection metric due to multi-class imbalance across the 4 navigation categories, with Accuracy and ROC-AUC (OvR) as supporting metrics.
-  - Conducted `GridSearchCV` hyperparameter tuning with 3-fold session-grouped cross-validation to prevent intra-session data leakage.
-  - Documented quantitative improvements comparing Baseline vs. Tuned performance across all 5 evaluation metrics, clearly distinguishing absolute percentage-point changes from relative percentage changes.
-  - Generated diagnostic visualisations (Confusion Matrix, Multi-Class OvR ROC curves, and Ensemble Feature Importances).
-
-### Section B — Clustering Track (8 Marks)
-- **B1 Implementation:** Fitted both **K-Means Clustering** and **Agglomerative Hierarchical Clustering** on standardized clickstream attributes without label guidance.
-- **B2 Evaluation Metrics:**
-  - Evaluated on **Silhouette Score**, **Davies-Bouldin Index**, and **Calinski-Harabasz Index**.
-  - Generated **Elbow Curve** (Inertia vs. $k$) showing optimal inflection at $k=4$.
-  - Generated **Dendrogram** using Ward's minimum variance linkage method.
-- **B3 Cluster Visualisation:**
-  - Mandatory **PCA 2D scatter plots** showing cluster separation for both K-Means and Hierarchical Clustering.
-  - **t-SNE 2D manifold projection** validating non-linear cluster separation.
-  - Extracted 4 actionable customer personas (Quick Bouncers, Weekend Explorers, Deeply Engaged Shoppers, Category-Specific Browsers).
-
-### Section C — Pipeline Quality & Structure (3 Marks)
-- **C1 Code Quality & Zero Data Leakage:**
-  - **Session-Grouped Splitting (`StratifiedGroupKFold`):** Customer click journeys are grouped by `Session_ID` before any transformations so that clicks from the same session never cross training and test boundaries.
-  - **Encapsulated Preprocessing:** Numerical median imputation (`SimpleImputer`) and standardization (`StandardScaler`) are encapsulated in `Pipeline` and `ColumnTransformer`, fitted strictly on training data only.
-  - Reusable modular evaluation functions, reproducible random seeds (`RANDOM_STATE = 42`), clean top-to-bottom error-free execution, and saved model artifacts for deployment.
-
-### Bonus Opportunities (+2 Marks)
-- Interactive web application created in [`app/app.py`](app/app.py) using Streamlit for live customer category prediction and cluster exploration.
+```text
+/ (root)
+│
+├── README.md                          # Comprehensive project overview, results, & setup instructions
+├── requirements.txt                   # All Python dependencies with explicit versions
+│
+├── data/                              # Raw dataset file(s) and data verification script
+│   ├── shopping2.csv                  # Raw clickstream dataset (165,474 interaction records)
+│   └── download_data.py               # Dataset verification & integrity inspection utility
+│
+├── notebooks/                         # Core Jupyter Notebooks for all ML tracks
+│   ├── regression.ipynb               # Review 1: 10 Regression algorithms, tuning, & residual analysis
+│   ├── classification.ipynb           # Review 2: Session-grouped 10-model benchmark, tuning, & ROC curves
+│   └── clustering.ipynb               # Review 2: K-Means & Hierarchical clustering, PCA/t-SNE, personas
+│
+├── models/                            # Serialized Joblib (.pkl) trained model artifacts
+│   ├── best_regressor.pkl             # Champion Random Forest Regressor
+│   ├── reg_preprocessor.pkl           # ColumnTransformer preprocessing pipeline for regression
+│   ├── best_classifier.pkl            # Champion Tuned Bagging Classifier (with Decision Trees)
+│   ├── best_classifier_rf.pkl         # Backward-compatible alias for champion classifier
+│   ├── preprocessor.pkl               # Leakage-free ColumnTransformer for classification
+│   ├── label_encoder.pkl              # Fitted LabelEncoder for category targets
+│   ├── kmeans_model.pkl               # Fitted K-Means Clustering model (k=4)
+│   └── clust_preprocessor.pkl         # StandardScaler & Median Imputer pipeline for clustering
+│
+├── figures/                           # Visualizations, diagnostic plots, and benchmark tables
+│   ├── regression_model_comparison.csv
+│   ├── classification_10_models_comparison.csv
+│   ├── baseline_vs_tuned_champion_comparison.csv
+│   ├── clustering_evaluation_metrics.csv
+│   └── cluster_profiles_summary.csv
+│
+└── app/                               # Interactive Streamlit Web Application
+    └── app.py                         # Live multi-track prediction and segmentation interface
+```
 
 ---
 
-## 3. Results Summary Leaderboard
+## 2. Project Overview & Problem Statement
 
-### Classification 10-Algorithm Consolidated Benchmark (Rubric A2)
+E-commerce platforms capture fine-grained clickstream trajectories as users browse product listings. This project harnesses clickstream data (`shopping2.csv`) spanning **165,474 interactions** across diverse customer sessions to tackle three interrelated machine learning problems:
 
-Ranked primarily by **Weighted F1-Score**:
+1. **Regression (Continuous Price Prediction):**  
+   Predict the monetary value (`Price`) of products viewed by users given contextual click attributes (page order, location code, photography style, session depth, and time of week) to dynamically evaluate user price sensitivity.
+2. **Classification (Customer Intent & Category Navigation):**  
+   Predict the target multi-class product department (`Main_Category`: *Trousers*, *Skirts*, *Blouses*, or *Sale*) that a shopper navigates to. To ensure real-world validity and zero data leakage, sessions are split as grouped units (`StratifiedGroupKFold`) so interactions from the same session never cross train/test boundaries.
+3. **Clustering (Unsupervised Customer Segmentation):**  
+   Group customer sessions into distinct behavioral segments without supervision or label guidance, identifying actionable business personas to enable personalized marketing strategies.
 
-| Rank | Algorithm | Track Part | Accuracy | Weighted Precision | Weighted Recall | Weighted F1 | ROC-AUC (OvR) |
+---
+
+## 3. Results Summary & Model Benchmarks
+
+### Track 1: Regression Track Results (Review 1)
+
+All 10 regression algorithms were evaluated on the held-out test split using $R^2$, Root Mean Squared Error (RMSE), and Mean Absolute Error (MAE):
+
+| Rank | Algorithm | $R^2$ Score (↑) | RMSE (↓) | MAE (↓) | Status |
+|:---:|:---|:---:|:---:|:---:|:---|
+| 1 | **Random Forest Regressor** | **0.6335** | **7.19** | **4.20** | **Champion Model** |
+| 2 | **Decision Tree Regressor** | 0.5855 | 7.65 | 4.97 | Runner-Up |
+| 3 | **Gradient Boosting Regressor** | 0.5097 | 8.32 | 6.23 | Ensemble Baseline |
+| 4 | **K-Nearest Neighbors (KNN)** | 0.2340 | 10.40 | 7.67 | Non-Parametric |
+| 5 | **Support Vector Regressor (SVR)** | 0.1310 | 11.07 | 7.90 | Kernel RBF |
+| 6 | **Polynomial Regression (Degree 2)** | 0.1192 | 11.15 | 9.13 | Non-linear Expansion |
+| 7 | **ElasticNet Regression** | 0.0510 | 11.57 | 9.47 | Regularized Linear |
+| 8 | **Lasso Regression (L1)** | 0.0509 | 11.57 | 9.46 | Feature Selection |
+| 9 | **Ridge Regression (L2)** | 0.0509 | 11.57 | 9.46 | L2 Regularized |
+| 10 | **Linear Regression (OLS)** | 0.0509 | 11.57 | 9.46 | Baseline Linear |
+
+- **Hyperparameter Tuning:** 5-Fold Cross Validation on Random Forest optimized `n_estimators=100`, `max_depth=12`, reducing test RMSE to 7.19.
+- **Diagnostics:** Residual distributions demonstrated zero-centered normality, confirming homoscedastic variance.
+
+---
+
+### Track 2: Classification Track Results (Review 2 — Section A)
+
+#### 10-Algorithm Consolidated Leaderboard (Ranked by Weighted F1-Score)
+
+| Rank | Algorithm | Track Part | Accuracy | Weighted Precision | Weighted Recall | Weighted F1 (Primary) | ROC-AUC (OvR) |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | 1 | **Bagging Classifier** | Part B | 0.8797 | 0.8819 | 0.8797 | **0.8802** | **0.9859** |
 | 2 | **Random Forest Classifier** | Part B | 0.8719 | 0.8732 | 0.8719 | 0.8720 | 0.9785 |
@@ -70,21 +101,19 @@ Ranked primarily by **Weighted F1-Score**:
 | 4 | **Gradient Boosting** | Part B | 0.8597 | 0.8609 | 0.8597 | 0.8598 | 0.9761 |
 | 5 | **Decision Tree Classifier** | Part A | 0.7118 | 0.7370 | 0.7118 | 0.7086 | 0.9241 |
 | 6 | **K-Nearest Neighbors** | Part A | 0.6362 | 0.6363 | 0.6362 | 0.6350 | 0.8405 |
-| 7 | **Support Vector Machine (SVC)** | Part A | 0.5892 | 0.5943 | 0.5892 | 0.5752 | 0.8180 |
+| 7 | **Support Vector Machine (SVC)**| Part A | 0.5892 | 0.5943 | 0.5892 | 0.5752 | 0.8180 |
 | 8 | **Naive Bayes (Gaussian)** | Part A | 0.4594 | 0.4489 | 0.4594 | 0.4409 | 0.7218 |
 | 9 | **Logistic Regression** | Part A | 0.4422 | 0.4199 | 0.4422 | 0.4173 | 0.7420 |
 | 10 | **AdaBoost Classifier** | Part B | 0.4422 | 0.4190 | 0.4422 | 0.4123 | 0.7928 |
 
-### Champion Model Selection & Hyperparameter Tuning Improvement (Rubric A3)
+#### Champion Model Selection & Justification (Rubric A3)
+- **Champion Selected:** **Bagging Classifier** (utilizing parallel deep `DecisionTreeClassifier` estimators).
+- **Justification over Random Forest:** Bagging preserves full feature subspaces across bootstrap samples, achieving higher ensemble diversity and outperforming Random Forest on both test F1-score (+0.82 pp) and ROC-AUC (+0.74 pp).
+- **Primary Metric Justification:** **Weighted F1-Score** accounts for multi-class category imbalance across product departments, avoiding raw accuracy distortion.
 
-- **Selected Champion Architecture:** **Bagging Classifier** (with `DecisionTreeClassifier` base estimators).
-- **Optimal Hyperparameters (via GridSearchCV with 3-Fold Group CV):**
-  - `n_estimators`: `50`
-  - `estimator__max_depth`: `12`
-  - `estimator__min_samples_split`: `2`
-  - `max_samples`: `0.85`
+#### GridSearchCV Hyperparameter Tuning Performance
 
-#### Baseline vs. Tuned Performance on Held-Out Test Set:
+Optimal Hyperparameters: `n_estimators=50`, `estimator__max_depth=12`, `estimator__min_samples_split=2`, `max_samples=0.85` via 3-Fold session-grouped CV.
 
 | Metric | Baseline Bagging | Tuned Bagging | Absolute Change (pp) | Relative Improvement (%) |
 |:---|:---:|:---:|:---:|:---:|
@@ -94,103 +123,77 @@ Ranked primarily by **Weighted F1-Score**:
 | **Weighted F1-Score** | 0.8802 | **0.8869** | **+0.67 pp** | **+0.76%** |
 | **ROC-AUC (OvR)** | 0.9859 | **0.9883** | **+0.24 pp** | **+0.24%** |
 
-*Note: Absolute Change (pp) is the percentage-point difference: $(\text{Tuned} - \text{Baseline}) \times 100$. Relative Improvement (%) is the percentage gain relative to baseline: $\frac{\text{Tuned} - \text{Baseline}}{\text{Baseline}} \times 100\%$.*
+---
 
-### Clustering Track Benchmark (Rubric B2)
+### Track 3: Clustering Track Results (Review 2 — Section B)
 
-| Clustering Algorithm | Number of Clusters ($k$) | Silhouette Score (↑) | Davies-Bouldin Index (↓) | Calinski-Harabasz Index (↑) |
-|:---|:---:|:---:|:---:|:---:|
-| **K-Means Clustering** | **4** | **0.3276** | **1.1814** | **2887.10** |
-| **Agglomerative Hierarchical** | **4** | **0.3163** | **1.1758** | **2608.21** |
+Both **K-Means** and **Agglomerative Hierarchical Clustering** were fitted on standardized clickstream attributes (`Page_Order`, `Location_Code`, `Photography_Type`, `session_total_clicks`, `click_progress`, `is_weekend`) at optimal $k=4$:
+
+| Algorithm | Clusters ($k$) | Silhouette Score (↑) | Davies-Bouldin Index (↓) | Calinski-Harabasz Index (↑) | Recommended Use Case |
+|:---|:---:|:---:|:---:|:---:|:---|
+| **K-Means Clustering** | **4** | **0.2981** | **1.2294** | **3156.9** | **Production & Live User Scoring** |
+| **Agglomerative Hierarchical** | 4 | 0.2858 | 1.2562 | 2919.4 | Exploratory Taxonomy & Tree Analysis |
+
+#### Discovered Customer Personas:
+1. **Cluster 0 — Quick Bouncers:** Single-item visitors (`session_total_clicks` $\approx 1.8$, low page depth). Strategy: High-impact homepage hooks and instant discount modals.
+2. **Cluster 1 — Weekend Explorers:** High weekend activity (`is_weekend` = 1.0) with varied photography exploration. Strategy: Weekend flash sales and bundle recommendations.
+3. **Cluster 2 — Deeply Engaged High-Intent Shoppers:** Long browsing journeys (`session_total_clicks` > 15, high `Page_Order`). Strategy: Cart abandonment reminders and loyalty promotions.
+4. **Cluster 3 — Category-Specific Focused Buyers:** Direct navigators focused on specific catalog coordinates. Strategy: Targeted cross-selling within category.
 
 ---
 
-## 4. Repository Structure
+## 4. Setup & Installation Instructions
 
-```text
-team16_ml_casestudy/
-├── app/
-│   └── app.py                                  # Streamlit Interactive Web Application
-├── figures/                                    # Generated Evaluation Plots & CSVs
-│   ├── baseline_vs_tuned_champion_comparison.csv
-│   ├── classification_10_models_benchmark.png
-│   ├── classification_10_models_comparison.csv
-│   ├── clustering_evaluation_metrics.csv
-│   ├── cluster_profiles_summary.csv
-│   ├── feature_importances_champion.png
-│   ├── feature_importances_rf.png
-│   ├── hierarchical_dendrogram.png
-│   ├── kmeans_elbow_curve.png
-│   ├── pca_clusters_comparison.png
-│   ├── tsne_clusters_kmeans.png
-│   ├── tuned_champion_confusion_matrix.png
-│   ├── tuned_champion_ovr_roc_curves.png
-│   ├── tuned_rf_confusion_matrix.png
-│   └── tuned_rf_ovr_roc_curves.png
-├── models/                                     # Saved Model Artifacts (.pkl)
-│   ├── best_classifier.pkl                     # Tuned Champion Model (Bagging)
-│   ├── best_classifier_rf.pkl                  # Compatibility model artifact
-│   ├── label_encoder.pkl                       # Target class encoder
-│   └── preprocessor.pkl                        # Pipeline (Imputer + StandardScaler)
-├── notebooks/ (or root)
-│   ├── online_shopping_prediction.ipynb        # Review 1 Notebook (Regression + Classification Part A)
-│   └── review2_classification_clustering.ipynb # Review 2 Notebook (Classification Part B + Clustering)
-├── shopping2.csv                               # Cleaned Raw Dataset
-├── requirements.txt                            # Pinned Dependencies
-└── README.md                                   # Project Documentation & Viva Guide
+Follow these steps to configure your Python environment and run the project locally.
+
+### Step 1: Clone the Repository & Open Directory
+```bash
+git clone https://github.com/srirammadala79/shopping_prediction.git
+cd team16_ml_casestudy
 ```
 
----
-
-## 5. How to Setup and Run
-
-### 1. Environment Setup
+### Step 2: Create and Activate Virtual Environment
 ```bash
-git clone <repository_url>
-cd team16_ml_casestudy
+# Windows (PowerShell)
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
+# Linux / macOS
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### Step 3: Install Required Dependencies
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 2. Run Review 2 Notebook
-Launch Jupyter Notebook or Jupyter Lab:
+### Step 4: Verify the Dataset
+Ensure the raw dataset is properly placed and validated:
 ```bash
-jupyter notebook review2_classification_clustering.ipynb
+python data/download_data.py
 ```
-All cells run cleanly top-to-bottom.
 
-### 3. Run the Interactive GUI (Local Streamlit)
+### Step 5: Run the Jupyter Notebooks
+Open VS Code, JupyterLab, or start Jupyter Notebook:
 ```bash
-python -m streamlit run app/app.py
+jupyter notebook
 ```
-This opens the web interface in your browser (`http://localhost:8501`) with live prediction sliders and cluster charts.
+Navigate to `notebooks/` and run:
+- `notebooks/regression.ipynb`
+- `notebooks/classification.ipynb`
+- `notebooks/clustering.ipynb`
 
-### 4. Containerized Deployment (Docker)
-Build and run using Docker Compose:
+### Step 6: Launch the Interactive Web Application (Bonus)
+Launch the Streamlit user interface to interact with the trained models and visualize live predictions:
 ```bash
-docker compose up --build
+streamlit run app/app.py
 ```
-Or build and launch via standard Docker:
-```bash
-docker build -t clickstream-ml-app .
-docker run -p 8501:8501 clickstream-ml-app
-```
-Access the application at `http://localhost:8501`.
-
-### 5. Vercel Public Cloud Deployment (+2 Bonus Marks)
-The self-contained Vercel deployment bundle is ready inside [`vercel_deployment/`](vercel_deployment/):
-- **Live GUI:** Accepts user inputs and returns multi-track predictions across **Review 1** (Price Regression) and **Review 2** (Category Classification & Customer Segmentation).
-- **Serverless ML Backend:** Powered by Python serverless functions in `vercel_deployment/api/index.py`.
-
-To deploy publicly via Vercel CLI:
-```bash
-cd vercel_deployment
-npx vercel
-```
-Or connect your GitHub repository to [Vercel](https://vercel.com) and set the root directory to `vercel_deployment` for automatic continuous deployment.
 
 ---
 
-## 6. Academic Integrity & AI Assistance Citation
-Per Section 7.5 of the Capstone Project Guidelines:
-- Feature engineering, domain modeling, and statistical analysis logic were custom-designed for this clickstream dataset.
-- Generative AI assistance was utilized for code scaffolding, plot styling, and notebook structure structuring.
+## 5. Team 16 Members & Contributions
+- **Team:** Team 16 (B.Tech. CSE, 3rd Year)
+- **Course:** 23CSE301 Machine Learning
+- **Institution:** Amrita Vishwa Vidyapeetham
